@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-
-import 'model/coffee.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:google_place/google_place.dart';
+
+import 'colors.dart';
+import 'model/coffee.dart';
 
 const tabs = [
   {'title': 'coffee', 'page': CoffeeTab()},
@@ -44,9 +48,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         appBar: AppBar(
           title: Text(
               '${(tabs[widget.index]['title']).toString().toUpperCase()} MENU'),
-          centerTitle: true,
+          actions: [
+            IconButton(
+              onPressed: () async {
+                // final kGoogleApiKey = dotenv.env['API_KEY'];
+
+                // await PlacesAutocomplete.show(
+                //     context: context,
+                //     apiKey: kGoogleApiKey!,
+                //     mode: Mode.overlay, // Mode.fullscreen
+                //     language: "fr",
+                //     components: [
+                //       Component(Component.country, "fr"),
+                //     ],
+                //     proxyBaseUrl: 'https://localhost:5000',
+                //     logo: const Icon(Icons.flutter_dash));
+              },
+              icon: const Icon(Icons.search),
+            )
+          ],
           bottom: TabBar(
             controller: controller,
+            indicatorColor: kColor4,
+            labelColor: kColor5,
+            labelStyle: GoogleFonts.balsamiqSans(),
             tabs: const [
               Tab(child: Text('Coffee')),
               Tab(child: Text('Tea')),
@@ -82,22 +107,67 @@ class CoffeeListTile extends StatelessWidget {
           constraints: const BoxConstraints(
             maxWidth: 600,
           ),
-          child: ListTile(
-            leading: Hero(
-                tag: 'coffee-image-${coffee.slug}',
-                child: Image.asset('assets/coffee.jpeg')),
-            title: Text(
-              coffee.name,
-              style: const TextStyle(
-                fontSize: 20,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+          decoration: BoxDecoration(
+            border: Border.fromBorderSide(
+              BorderSide(
+                width: 1,
+                color: Theme.of(context).dividerColor,
               ),
             ),
-            subtitle: Text(
-              coffee.description,
-              style: const TextStyle(
-                  color: Color(0xff333333), fontWeight: FontWeight.w600),
+          ),
+          child: ListTile(
+            iconColor: kColor5,
+            hoverColor: kColor1,
+            onTap: () {
+              context.goNamed(
+                'beverage-details',
+                params: {
+                  'slug': coffee.slug,
+                  'title': 'coffee',
+                },
+              );
+            },
+            leading: Hero(
+              tag: 'coffee-image-${coffee.slug}',
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                height: 300,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: kColor3,
+                    width: 1,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: Image.asset(
+                  'assets/coffee.jpeg',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            title: Padding(
+              padding: const EdgeInsets.only(top: 30, bottom: 5),
+              child: Text(coffee.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.1,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xff3b3b3b),
+                  )
+                  // Theme.of(context).textTheme.headline4
+                  // .copyWith(
+                  //     color: const Color(0xff3b3b3b), fontWeight: FontWeight.w600),
+                  ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Text(
+                coffee.description,
+                style: const TextStyle(
+                  height: 1.1,
+                  color: Color(0xff3b3b3b),
+                ),
+              ),
             ),
             trailing: IconButton(
               onPressed: () {
@@ -128,20 +198,96 @@ class CoffeeTab extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 16),
         itemBuilder: (context, i) =>
             Center(child: CoffeeListTile(coffee: coffees[i])),
-        separatorBuilder: (context, i) => const SizedBox(height: 20),
+        separatorBuilder: (context, i) => const SizedBox(
+          height: 20,
+        ),
         itemCount: coffees.length,
       );
     });
   }
 }
 
-class TeaTab extends StatelessWidget {
+class TeaTab extends StatefulWidget {
   const TeaTab({Key? key}) : super(key: key);
 
   @override
+  State<TeaTab> createState() => _TeaTabState();
+}
+
+class _TeaTabState extends State<TeaTab> {
+  late GooglePlace googlePlace;
+  List<AutocompletePrediction> prediction = [];
+
+  @override
+  void initState() {
+    super.initState();
+    String apiKey = dotenv.env['API_KEY']!;
+    googlePlace = GooglePlace(
+      apiKey,
+      proxyUrl: 'cors-anywhere.herokuapp.com',
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Tea Tab '),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                labelText: "Search",
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.blue,
+                    width: 2.0,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.black54,
+                    width: 2.0,
+                  ),
+                ),
+              ),
+              onChanged: (value) async {
+                if (value.isNotEmpty) {
+                  var result = await googlePlace.autocomplete.get(value);
+                  debugPrint("$result");
+                  if (result != null && result.predictions != null && mounted) {
+                    setState(() {
+                      prediction = result.predictions!;
+                    });
+                  }
+                  // else {
+                  //   setState(() {
+                  //     prediction = [];
+                  //   });
+                  // }
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemBuilder: (ctx, i) => ListTile(
+                  title: Text(prediction[i].description ?? ''),
+                  onTap: () async {
+                    debugPrint("${prediction[i].placeId}");
+                    context.goNamed('place-detail', params: {
+                      'id': prediction[i].placeId ?? '',
+                      'title': 'tea'
+                    });
+                  },
+                ),
+                itemCount: prediction.length,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

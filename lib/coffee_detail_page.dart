@@ -50,14 +50,14 @@ class CoffeeDetailPage extends StatelessWidget {
               //! steps
               const SizedBox(height: 50),
               coffee.steps != null && coffee.steps!.isNotEmpty
-                  ? ListView.builder(
+                  ? ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context, i) => Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            'Steps $i',
+                            'Steps ${i + 1}',
                             style: const TextStyle(
                               fontSize: 18,
                               color: Colors.black,
@@ -68,6 +68,7 @@ class CoffeeDetailPage extends StatelessWidget {
                         ],
                       ),
                       itemCount: coffee.steps!.length,
+                      separatorBuilder: (ctx, _) => const SizedBox(height: 10),
                     )
                   : const SizedBox()
             ],

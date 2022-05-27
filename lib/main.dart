@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:nav2_go_router/colors.dart';
+import 'package:nav2_go_router/places_details_page.dart';
 
 import 'coffee_detail_page.dart';
 import 'detail_page.dart';
@@ -8,16 +12,16 @@ import 'home_page.dart';
 import 'login_page.dart';
 import 'model_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
   final LoginInfo loginInfo = LoginInfo();
   final _router = GoRouter(
     redirect: (state) {
-      final isLoggin = state.location == '/login';
+      final isLoggin = state.subloc == '/login';
       final isLoggedIn = loginInfo.isLoggedIn;
 
-      debugPrint('subloc: ${state.subloc}');
-
-      if (!isLoggedIn && !isLoggin) return '/login';
+      if (!isLoggedIn && !isLoggin) return '/login?from=${state.location}';
       if (isLoggedIn && isLoggin) return '/';
 
       return null;
@@ -36,7 +40,6 @@ void main() {
         path: '/beverage/:title',
         builder: (context, state) {
           final title = state.params['title']!;
-          debugPrint("title: $title");
           return HomePage(
             key: state.pageKey,
             title: title,
@@ -44,12 +47,21 @@ void main() {
         },
         routes: [
           GoRoute(
-              path: ':slug',
-              name: 'beverage-details',
-              builder: (context, state) {
-                final slug = state.params['slug']!;
-                return CoffeeDetailPage(slug: slug);
-              })
+            path: ':slug',
+            name: 'beverage-details',
+            builder: (context, state) {
+              final slug = state.params['slug']!;
+              return CoffeeDetailPage(slug: slug);
+            },
+          ),
+          GoRoute(
+            path: 'place/:id',
+            name: 'place-detail',
+            builder: (context, state) {
+              final id = state.params['id'];
+              return PlaceDetailPage(key: state.pageKey, placeId: id);
+            },
+          )
         ],
       ),
       GoRoute(
@@ -68,6 +80,7 @@ void main() {
         builder: (context, state) => LoginPage(
           loginInfo: loginInfo,
           key: state.pageKey,
+          from: state.queryParams['from'],
         ),
       )
     ],
@@ -90,8 +103,18 @@ class MyApp extends StatelessWidget {
       routeInformationParser: _router.routeInformationParser,
       routerDelegate: _router.routerDelegate,
       title: 'Navigator 2.0',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        textTheme: GoogleFonts.balsamiqSansTextTheme().copyWith(
+          titleLarge: GoogleFonts.balsamiqSans(color: kColor5),
+        ),
+        appBarTheme: AppBarTheme.of(context).copyWith(
+          centerTitle: true,
+          color: kColor1,
+          titleTextStyle: GoogleFonts.balsamiqSans(color: kColor5),
+        ),
+        scaffoldBackgroundColor: kColor2,
       ),
     );
   }
