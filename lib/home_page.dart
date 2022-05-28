@@ -222,6 +222,7 @@ class _TeaTabState extends State<TeaTab> {
   void initState() {
     super.initState();
     String apiKey = dotenv.env['API_KEY']!;
+    debugPrint(apiKey);
     googlePlace = GooglePlace(
       apiKey,
       proxyUrl: 'https://cors-anywhere.herokuapp.com/',
