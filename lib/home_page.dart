@@ -224,7 +224,11 @@ class _TeaTabState extends State<TeaTab> {
     String apiKey = dotenv.env['API_KEY']!;
     googlePlace = GooglePlace(
       apiKey,
-      proxyUrl: 'cors-anywhere.herokuapp.com',
+      proxyUrl: 'https://cors-anywhere.herokuapp.com/',
+      // headers: {
+      // 'Access-Control-Allow-Origin': '*',
+      //   'Referrer Policy': 'strict-origin-when-cross-origin'
+      // },
     );
   }
 
@@ -255,7 +259,6 @@ class _TeaTabState extends State<TeaTab> {
               onChanged: (value) async {
                 if (value.isNotEmpty) {
                   var result = await googlePlace.autocomplete.get(value);
-                  debugPrint("$result");
                   if (result != null && result.predictions != null && mounted) {
                     setState(() {
                       prediction = result.predictions!;
@@ -275,7 +278,6 @@ class _TeaTabState extends State<TeaTab> {
                 itemBuilder: (ctx, i) => ListTile(
                   title: Text(prediction[i].description ?? ''),
                   onTap: () async {
-                    debugPrint("${prediction[i].placeId}");
                     context.goNamed('place-detail', params: {
                       'id': prediction[i].placeId ?? '',
                       'title': 'tea'

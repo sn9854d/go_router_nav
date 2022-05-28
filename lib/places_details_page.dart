@@ -19,7 +19,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
     String apiKey = dotenv.env['API_KEY']!;
     googlePlace = GooglePlace(
       apiKey,
-      proxyUrl: 'cors-anywhere.herokuapp.com',
+      proxyUrl: 'https://cors-anywhere.herokuapp.com/',
     );
   }
 
