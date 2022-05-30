@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_place/google_place.dart';
+import 'package:nav2_go_router/injection_container.dart';
+import 'package:nav2_go_router/login_page.dart';
 
 import 'colors.dart';
 import 'model/coffee.dart';
@@ -51,20 +53,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           actions: [
             IconButton(
               onPressed: () async {
-                // final kGoogleApiKey = dotenv.env['API_KEY'];
-
-                // await PlacesAutocomplete.show(
-                //     context: context,
-                //     apiKey: kGoogleApiKey!,
-                //     mode: Mode.overlay, // Mode.fullscreen
-                //     language: "fr",
-                //     components: [
-                //       Component(Component.country, "fr"),
-                //     ],
-                //     proxyBaseUrl: 'https://localhost:5000',
-                //     logo: const Icon(Icons.flutter_dash));
+                final loginInfo = sl.get<LoginInfo>();
+                await loginInfo.toggleLoginState(false);
               },
-              icon: const Icon(Icons.search),
+              icon: const Icon(Icons.logout_outlined),
             )
           ],
           bottom: TabBar(
@@ -225,11 +217,12 @@ class _TeaTabState extends State<TeaTab> {
     debugPrint(apiKey);
     googlePlace = GooglePlace(
       apiKey,
-      proxyUrl: 'https://cors-anywhere.herokuapp.com/',
-      // headers: {
-      // 'Access-Control-Allow-Origin': '*',
-      //   'Referrer Policy': 'strict-origin-when-cross-origin'
-      // },
+      // proxyUrl: 'https://cors-anywhere.herokuapp.com/',
+      headers: {
+        // 'Access-Control-Allow-Origin': '*',
+        //   'Referrer Policy': 'strict-origin-when-cross-origin'
+        // 'Origin': 'localhost',
+      },
     );
   }
 

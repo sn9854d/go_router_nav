@@ -2,25 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:nav2_go_router/colors.dart';
-import 'package:nav2_go_router/places_details_page.dart';
 
 import 'coffee_detail_page.dart';
+import 'colors.dart';
 import 'detail_page.dart';
 import 'error_screen.dart';
 import 'home_page.dart';
+import 'injection_container.dart';
 import 'login_page.dart';
 import 'model_page.dart';
+import 'places_details_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await init();
   await dotenv.load(fileName: 'dotenv');
-  final LoginInfo loginInfo = LoginInfo();
+  final LoginInfo loginInfo = sl.get<LoginInfo>();
+
   final _router = GoRouter(
     redirect: (state) {
       final isLoggin = state.subloc == '/login';
-      final isLoggedIn = loginInfo.isLoggedIn;
-
+      final isLoggedIn = loginInfo.isLoggedIn();
       if (!isLoggedIn && !isLoggin) return '/login?from=${state.location}';
       if (isLoggedIn && isLoggin) return '/';
 

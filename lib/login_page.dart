@@ -2,14 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nav2_go_router/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const String isLoggedIng = 'isLoggedIn';
 
 class LoginInfo with ChangeNotifier {
   var _isLoggedin = false;
+  final SharedPreferences sharedPreferences;
 
-  bool get isLoggedIn => _isLoggedin;
+  LoginInfo({required this.sharedPreferences});
 
-  set isLoggedIn(bool value) {
+  bool isLoggedIn() {
+    if (!_isLoggedin) {
+      final value = sharedPreferences.getBool(isLoggedIng);
+      _isLoggedin = value ?? false;
+    }
+    return _isLoggedin;
+  }
+
+  Future<void> toggleLoginState(bool value) async {
     _isLoggedin = value;
+    debugPrint("loggin in: $value");
+    await sharedPreferences.setBool(isLoggedIng, value);
     notifyListeners();
   }
 }
@@ -24,8 +38,8 @@ class LoginPage extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: TextButton(
-          onPressed: () {
-            loginInfo.isLoggedIn = true;
+          onPressed: () async {
+            await loginInfo.toggleLoginState(true);
             if (from != null) {
               context.go(from!);
             }
